@@ -6,7 +6,9 @@ from azure.storage.blob import BlobClient
 from PIL import Image
 import io
 import fitz
-from utils import blob_base_url, sas_token
+
+blob_base_url = os.environ['BLOB_URL']
+sas_token = os.environ['SAS_TOKEN']
 
 
 def update_seen(file_path, seen=None):
@@ -15,10 +17,11 @@ def update_seen(file_path, seen=None):
         labelled = open(file_path, 'r').read().strip()
         if labelled:
             labelled = labelled.split('\n')
+            labelled = set(labelled)
             labelled = [json.loads(row) for row in labelled]
             doc_names = set([row['doc_name'] for row in labelled])
             for doc_name in doc_names:
-                seen[doc_name] = [row['page'] for row in labelled if row['doc_name'] == doc_name]
+                seen[doc_name] = sorted([row['page'] for row in labelled if row['doc_name'] == doc_name])
     return seen
 
 
@@ -99,16 +102,19 @@ class ImageOutputter:
     def record_label(self, doc_class):
         jsn = {'doc_name': self.doc_name, 'page': self.page, 'doc_class': doc_class}
         self.labels_file.write(json.dumps(jsn) + '\n')
+        self.labels_file.flush()
         return self.get_next()
 
     def record_error(self, error_type):
         jsn = {'doc_name': self.doc_name, 'page': self.page, 'error': error_type}
         self.errors_file.write(json.dumps(jsn) + '\n')
+        self.errors_file.flush()
         return self.get_next()
 
     def record_skipped_page(self):
         jsn = {'doc_name': self.doc_name, 'page': self.page}
         self.skipped_file.write(json.dumps(jsn) + '\n')
+        self.skipped_file.flush()
 
     def skip_page(self):
         self.record_skipped_page()
