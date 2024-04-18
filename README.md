@@ -20,3 +20,5 @@ There is also a solution here on how to download a PDF into memory and display i
 - Display the current label of a page (and maybe labelling history)
 - Allow to filter displayed pages by class for review purposes
 - Add unit tests, particularly for page navigation logic
+
+![labeller_example.png](labeller_example.png)
